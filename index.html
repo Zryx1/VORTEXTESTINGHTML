@@ -150,6 +150,10 @@
             background: #4a2f7a;
         }
 
+        .btn-run {
+            background: #6b2fd4;
+        }
+
         /* Layout split mode 1 */
         .main-container {
             display: flex;
@@ -229,7 +233,6 @@
         }
 
         /* ========== MODE 2 ========== */
-        /* Mode 2: layar penuh untuk editor atau hasil */
         .mode2-full {
             flex: 1;
             display: flex;
@@ -304,7 +307,7 @@
                     </div>
                     <div class="btn-group">
                         <button id="clearBtnSplit">🗑 CLEAR</button>
-                        <button id="runBtnSplit">▶ RUN</button>
+                        <button id="runBtnSplit" class="btn-run">▶ RUN</button>
                         <button id="backMenuSplit" class="btn-back">🏠 MENU</button>
                     </div>
                 </div>
@@ -401,7 +404,9 @@
                     <div class="title">
                         <h1>◈ MODE 2 | CODE → HASIL</h1>
                     </div>
-                    <div class="btn-group">
+                    <div class="btn-group" id="mode2BtnGroup">
+                        <button id="runMode2TopBtn" class="btn-run">▶ RUN</button>
+                        <button id="backToCodeTopBtn" class="btn-back" style="display:none;">◀ BACK KE CODE</button>
                         <button id="backMenuFull" class="btn-back">🏠 MENU</button>
                     </div>
                 </div>
@@ -414,6 +419,8 @@
 
             const mode2Content = document.getElementById('mode2Content');
             const backMenuBtn = document.getElementById('backMenuFull');
+            const backToCodeTopBtn = document.getElementById('backToCodeTopBtn');
+            const runTopBtn = document.getElementById('runMode2TopBtn');
             
             let currentView = 'editor'; // 'editor' atau 'preview'
             let currentCode = localStorage.getItem('mode2_code') || `<h1 style="color: #b87cff; font-family: sans-serif;">✨ Mode 2 Aktif!</h1>
@@ -427,55 +434,59 @@
             // Fungsi render editor
             function showEditor() {
                 currentView = 'editor';
+                backToCodeTopBtn.style.display = 'none';
+                runTopBtn.style.display = 'inline-block';
                 mode2Content.innerHTML = `
                     <div class="mode2-full" style="flex:1; display:flex; flex-direction:column; position:relative;">
                         <video class="video-background" autoplay loop muted playsinline>
                             <source src="https://files.catbox.moe/mp3fu3.mp4" type="video/mp4">
                         </video>
                         <textarea id="mode2Editor" spellcheck="false" placeholder="Tulis kode HTML di sini..." style="flex:1; background:rgba(0,0,0,0.6); color:white; backdrop-filter:blur(3px); padding:20px; font-family:'Fira Code',monospace; font-size:14px; border:none; resize:none; outline:none;">${currentCode}</textarea>
-                        <div style="position:absolute; bottom:20px; right:20px; z-index:10;">
-                            <button id="runMode2Btn" style="background:#6b2fd4; padding:12px 30px; font-size:1rem;">▶ RUN</button>
-                        </div>
                     </div>
                 `;
                 const editorTextarea = document.getElementById('mode2Editor');
-                const runBtn = document.getElementById('runMode2Btn');
                 
                 editorTextarea.addEventListener('input', () => {
                     currentCode = editorTextarea.value;
                     localStorage.setItem('mode2_code', currentCode);
                 });
-                
-                runBtn.onclick = () => {
-                    currentCode = editorTextarea.value;
-                    localStorage.setItem('mode2_code', currentCode);
-                    showPreview();
-                };
             }
             
             // Fungsi render hasil full screen
             function showPreview() {
                 currentView = 'preview';
+                backToCodeTopBtn.style.display = 'inline-block';
+                runTopBtn.style.display = 'none';
                 mode2Content.innerHTML = `
                     <div class="mode2-full" style="flex:1; display:flex; flex-direction:column; position:relative;">
                         <iframe id="mode2Preview" title="hasil" sandbox="allow-same-origin allow-scripts allow-popups allow-forms" style="flex:1; width:100%; border:none; background:white;"></iframe>
-                        <div style="position:absolute; bottom:20px; right:20px; z-index:10; display:flex; gap:10px;">
-                            <button id="backToCodeBtn" class="btn-back" style="padding:10px 20px;">◀ BACK KE CODE</button>
-                        </div>
                     </div>
                 `;
                 const iframe = document.getElementById('mode2Preview');
-                const backBtn = document.getElementById('backToCodeBtn');
                 
                 // Render HTML ke iframe
                 const blob = new Blob([currentCode], { type: 'text/html' });
                 const url = URL.createObjectURL(blob);
                 iframe.src = url;
                 iframe.onload = () => URL.revokeObjectURL(url);
-                
-                backBtn.onclick = () => showEditor();
             }
             
+            // Fungsi RUN dari tombol atas
+            function runCode() {
+                // Ambil code terbaru dari editor jika sedang di editor view
+                if (currentView === 'editor') {
+                    const editorTextarea = document.getElementById('mode2Editor');
+                    if (editorTextarea) {
+                        currentCode = editorTextarea.value;
+                        localStorage.setItem('mode2_code', currentCode);
+                    }
+                }
+                showPreview();
+            }
+            
+            // Event tombol
+            runTopBtn.onclick = () => runCode();
+            backToCodeTopBtn.onclick = () => showEditor();
             backMenuBtn.onclick = () => backToMenu();
             
             // Tampilkan editor di awal
