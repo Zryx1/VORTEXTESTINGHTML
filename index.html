@@ -154,6 +154,15 @@
             background: #6b2fd4;
         }
 
+        .btn-clear {
+            background: #2d1f4e;
+            border: 1px solid #dc2626;
+        }
+
+        .btn-clear:hover {
+            background: #991b1b;
+        }
+
         /* Layout split mode 1 */
         .main-container {
             display: flex;
@@ -306,7 +315,7 @@
                         <h1>◈ MODE 1 | SPLIT VIEW</h1>
                     </div>
                     <div class="btn-group">
-                        <button id="clearBtnSplit">🗑 CLEAR</button>
+                        <button id="clearBtnSplit" class="btn-clear">🗑 CLEAR</button>
                         <button id="runBtnSplit" class="btn-run">▶ RUN</button>
                         <button id="backMenuSplit" class="btn-back">🏠 MENU</button>
                     </div>
@@ -405,6 +414,7 @@
                         <h1>◈ MODE 2 | CODE → HASIL</h1>
                     </div>
                     <div class="btn-group" id="mode2BtnGroup">
+                        <button id="clearMode2TopBtn" class="btn-clear">🗑 CLEAR</button>
                         <button id="runMode2TopBtn" class="btn-run">▶ RUN</button>
                         <button id="backToCodeTopBtn" class="btn-back" style="display:none;">◀ BACK KE CODE</button>
                         <button id="backMenuFull" class="btn-back">🏠 MENU</button>
@@ -421,6 +431,7 @@
             const backMenuBtn = document.getElementById('backMenuFull');
             const backToCodeTopBtn = document.getElementById('backToCodeTopBtn');
             const runTopBtn = document.getElementById('runMode2TopBtn');
+            const clearTopBtn = document.getElementById('clearMode2TopBtn');
             
             let currentView = 'editor'; // 'editor' atau 'preview'
             let currentCode = localStorage.getItem('mode2_code') || `<h1 style="color: #b87cff; font-family: sans-serif;">✨ Mode 2 Aktif!</h1>
@@ -436,6 +447,7 @@
                 currentView = 'editor';
                 backToCodeTopBtn.style.display = 'none';
                 runTopBtn.style.display = 'inline-block';
+                clearTopBtn.style.display = 'inline-block';
                 mode2Content.innerHTML = `
                     <div class="mode2-full" style="flex:1; display:flex; flex-direction:column; position:relative;">
                         <video class="video-background" autoplay loop muted playsinline>
@@ -457,6 +469,7 @@
                 currentView = 'preview';
                 backToCodeTopBtn.style.display = 'inline-block';
                 runTopBtn.style.display = 'none';
+                clearTopBtn.style.display = 'none';
                 mode2Content.innerHTML = `
                     <div class="mode2-full" style="flex:1; display:flex; flex-direction:column; position:relative;">
                         <iframe id="mode2Preview" title="hasil" sandbox="allow-same-origin allow-scripts allow-popups allow-forms" style="flex:1; width:100%; border:none; background:white;"></iframe>
@@ -469,6 +482,36 @@
                 const url = URL.createObjectURL(blob);
                 iframe.src = url;
                 iframe.onload = () => URL.revokeObjectURL(url);
+            }
+            
+            // Fungsi CLEAR
+            function clearCode() {
+                currentCode = '';
+                localStorage.setItem('mode2_code', '');
+                if (currentView === 'editor') {
+                    const editorTextarea = document.getElementById('mode2Editor');
+                    if (editorTextarea) {
+                        editorTextarea.value = '';
+                    }
+                }
+                // Tampilkan HTML kosong di preview jika sedang di preview
+                if (currentView === 'preview') {
+                    const emptyHtml = `<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><title>Kosong</title></head>
+<body style="font-family: monospace; padding: 20px; background: #faf9ff;">
+  <h3>📄 Kode kosong</h3>
+  <p>Tulis HTML di editor lalu klik RUN</p>
+</body>
+</html>`;
+                    const blob = new Blob([emptyHtml], { type: 'text/html' });
+                    const url = URL.createObjectURL(blob);
+                    const iframe = document.getElementById('mode2Preview');
+                    if (iframe) {
+                        iframe.src = url;
+                        iframe.onload = () => URL.revokeObjectURL(url);
+                    }
+                }
             }
             
             // Fungsi RUN dari tombol atas
@@ -486,6 +529,7 @@
             
             // Event tombol
             runTopBtn.onclick = () => runCode();
+            clearTopBtn.onclick = () => clearCode();
             backToCodeTopBtn.onclick = () => showEditor();
             backMenuBtn.onclick = () => backToMenu();
             
